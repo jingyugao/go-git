@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unsafe"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -161,6 +162,10 @@ type hunksGenerator struct {
 	beforeContext, afterContext []string
 }
 
+func NewHunksGenerator(chunks []Chunk, ctxLines int) *hunksGenerator {
+	return newHunksGenerator(chunks, ctxLines)
+}
+
 func newHunksGenerator(chunks []Chunk, ctxLines int) *hunksGenerator {
 	return &hunksGenerator{
 		chunks:   chunks,
@@ -286,6 +291,25 @@ func splitLines(s string) []string {
 	}
 
 	return out
+}
+
+type Hunk struct {
+	FromLine int
+	ToLine   int
+
+	FromCount int
+	ToCount   int
+
+	CtxPrefix string
+	OPs       []*struct {
+		Text string
+		T    Operation
+	}
+}
+
+// UnSafe: creates an unsafe version of the hunk
+func (h *hunk) UnSafe() *Hunk {
+	return (*Hunk)(unsafe.Pointer(h))
 }
 
 type hunk struct {
